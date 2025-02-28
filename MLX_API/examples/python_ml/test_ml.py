@@ -26,6 +26,9 @@ ambient_enable = True
 depth_enable = True
 intensity_enable = True
 depth_completion = True
+sync_mode_slave_enable = False
+
+
 
 # Define the input modes
 input_mode = Enum("input_mode", "CONNECT DISCONNECT START QUIT COMMAND")
@@ -50,6 +53,7 @@ def connection_helper():
         print("3 : Set Depth Enable")
         print("4 : Set Intensity Enable")
         print("5 : Set Depth Completion Enable")
+        print("6 : Set Sync Mode (Slave) Enable")
     print("---------------------------------------------------------------------------")
     print("q/Q: Quit")
     print("---------------------------------------------------------------------------")
@@ -62,6 +66,7 @@ def connection_check():
     global depth_enable
     global intensity_enable
     global depth_completion
+    global sync_mode_slave_enable
     success = False
     retval = input_mode.QUIT
 
@@ -126,6 +131,16 @@ def connection_check():
                 print(f"Current depth_completion: {msg}")
                 depth_completion = not depth_completion
             success = True
+        elif user_input == '6':
+            retval = input_mode.COMMAND
+            if lidar_object.is_connected():
+                lidar_object.stop()
+                lidar_object.sync_mode_slave_enable(sync_mode_slave_enable)
+                msg = "On" if sync_mode_slave_enable else "Off"
+                print(f"Current sync_mode_slave_enable: {msg}")
+                sync_mode_slave_enable = not sync_mode_slave_enable
+            success = True
+
         else:
             success = False
     

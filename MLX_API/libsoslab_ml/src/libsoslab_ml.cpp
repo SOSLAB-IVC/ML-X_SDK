@@ -679,7 +679,7 @@ SOSLAB::LidarML::~LidarML()
 std::string SOSLAB::LidarML::api_info()
 {
 	std::stringstream ss;
-	ss << "SOSLAB LiDAR ML-X API v2.3.0 build";
+	ss << "SOSLAB LiDAR ML-X API v2.3.2 build";
 	return ss.str();
 }
 

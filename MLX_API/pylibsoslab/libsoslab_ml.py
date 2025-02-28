@@ -26,6 +26,8 @@ class Scene:
     def initialize(self, depth_completion: bool):
         if depth_completion:
             self.cols = 576
+        else:
+            self.cols = 192
 
         self.timestamp = [0] * self.rows
         self.ambient_image = [0] * (self.rows * 576)
@@ -58,7 +60,7 @@ class LidarML:
 
     # API information
     def api_info(self) -> str:
-        return "SOSLAB LiDAR ML-X API v2.3.1 build"
+        return "SOSLAB LiDAR ML-X API v2.3.2 build"
 
     # Check if ML is connected
     def is_connected(self) -> bool:
@@ -114,6 +116,8 @@ class LidarML:
             self._parser_thread.join()
             self._parser_thread = None
 
+        self._shared_var_queue_packet = queue.Queue(128)
+
         retval = self._tcp_thread_func('stop', 0)
         if retval:
             self._udp_socket.close()
@@ -137,6 +141,10 @@ class LidarML:
     # Enable or disable intensity data packet
     def intensity_enable(self, enable: bool) -> bool:
         return self._tcp_thread_func('"packet_intensity_en":1' if enable else '"packet_intensity_en":0', 1)
+
+    # Enable or disable slave mode
+    def sync_mode_slave_enable(self, enable: bool) -> bool:
+        return self._tcp_thread_func('"sync_mode":1' if enable else '"sync_mode":0', 1)
 
     # TCP communication function
     def _tcp_thread_func(self, msg: str = None, send_type: int = None, warning_print: int = 0) -> bool:
