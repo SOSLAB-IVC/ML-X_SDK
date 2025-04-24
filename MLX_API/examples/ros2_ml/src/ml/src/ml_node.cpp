@@ -168,14 +168,26 @@ public:
 
         cv::Mat ambient_image(height, width2, CV_32SC1, ambient.data());
 
-        ambient_image.convertTo(ambient_image, CV_8UC1, (255.0 / (max_ambient_img_val - 0)), 0);
-        ambient_image = colormap(ambient_image);
-        cv::normalize(ambient_image, ambient_image, 0, 255, cv::NORM_MINMAX);
-        
+        // Convert to CV_32F for z-score normalization
+        ambient_image.convertTo(ambient_image, CV_32F);
+
+        // Perform z-score normalization
+        cv::Scalar mean, stddev;
+        cv::meanStdDev(ambient_image, mean, stddev);
+        ambient_image = (ambient_image - mean[0]) / stddev[0] * 64;
+        // Clip values to range [0, 255] and add 128 to center the distribution
+        cv::add(ambient_image, 128, ambient_image);
+        ambient_image = cv::min(cv::max(ambient_image, 0), 255);
+        ambient_image.convertTo(ambient_image, CV_8U);
+
+        // Apply CLAHE
+        cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE(2.0, cv::Size(8, 8));
+        clahe->apply(ambient_image, ambient_image);
+
         ambient_msg_->header.frame_id = DEFAULT_FRAME_ID;
         ambient_msg_->width = width2;
         ambient_msg_->height = height;
-        ambient_msg_->encoding = "rgb8";
+        ambient_msg_->encoding = "mono8";
         ambient_msg_->step = ambient_image.cols * ambient_image.elemSize();
         ambient_msg_->data.resize(0);
         ambient_msg_->data.insert(ambient_msg_->data.begin(), ambient_image.data, ambient_image.data + ambient_msg_->step * ambient_image.rows);
